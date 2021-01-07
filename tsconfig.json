@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "moduleResolution": "node",
+    "strict": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "module": "es6",
+    "lib": ["esnext"],
+    "sourceMap": false,
+    "noEmitOnError": true
+  },
+  "include": ["./src"]
+}
