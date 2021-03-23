@@ -1,4 +1,4 @@
-import resolve from 'rollup-plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
@@ -19,8 +19,8 @@ export default {
     typescript({
       typescript: require('typescript'),
     }),
-    resolve(),
+    nodeResolve({ preferBuiltins: false }),
     terser(),
   ],
-  external: [...Object.keys(pkg.dependencies || {})],
+  external: [...Object.keys(pkg.dependencies || {}), 'fs', 'path'],
 };
