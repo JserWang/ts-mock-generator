@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { INDEXABLE_TYPE } from '../constants';
 import { getIdentifierText } from '../utils';
+import { EnumEntry, serializeEnum } from './enum';
 
 interface IProperty {
   key: string;
@@ -10,6 +11,7 @@ interface IProperty {
 
 export interface InterfaceEntry {
   name?: string;
+  kind?: number;
   generics?: string[];
   extends?: string[];
   properties?: IProperty[];
@@ -106,11 +108,9 @@ const serializeHeritageClause = (
   let properties = new Array<IProperty>();
 
   nodeArray.forEach((node) => {
-    const entry = processTypeReferenceNode(node.expression, checker);
-    if (typeof entry !== 'string') {
-      superNames.push(entry.name || '');
-      properties = properties.concat(entry.properties || []);
-    }
+    const entry = processTypeReferenceNode(node.expression, checker) as InterfaceEntry;
+    superNames.push(entry.name || '');
+    properties = properties.concat(entry.properties || []);
   });
   return {
     superNames,
@@ -130,6 +130,7 @@ export const serializeInterface = (
 
   const entry: InterfaceEntry = {
     name,
+    kind: node.kind,
     properties: eachMembers(node.members, checker),
   };
 
@@ -151,7 +152,6 @@ export const serializeInterface = (
   return entry;
 };
 
-
 const getDeclaration = (node: ts.Node, checker: ts.TypeChecker) => {
   const type = checker.getTypeAtLocation(node);
   const symbol = type.symbol || type.aliasSymbol;
@@ -160,17 +160,19 @@ const getDeclaration = (node: ts.Node, checker: ts.TypeChecker) => {
 };
 
 /**
- * TypeReference to interface or generic string
+ * TypeReference to interface、Enum or generic string
  * @param node
  * @param checker
  */
 export const processTypeReferenceNode = (
   node: ts.TypeReferenceNode | ts.LeftHandSideExpression | ts.TypeNode,
   checker: ts.TypeChecker
-): InterfaceEntry | string => {
+): InterfaceEntry | EnumEntry | string => {
   const declaration = getDeclaration(node, checker);
   if (ts.isInterfaceDeclaration(declaration)) {
     return serializeInterface(declaration, checker);
+  } else if (ts.isEnumDeclaration(declaration)) {
+    return serializeEnum(declaration);
   } else if (ts.isTypeParameterDeclaration(declaration)) {
     // process like T = any
     return getIdentifierText(declaration.name);

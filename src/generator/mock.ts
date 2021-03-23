@@ -7,7 +7,9 @@ const getValueFromObject = (obj: Record<string, any>): Record<string, any> => {
   let result = {} as Record<string, any>;
   if (!Array.isArray(obj)) {
     Object.keys(obj).forEach((key) => {
-      if (typeof obj[key] === 'object') {
+      if (Array.isArray(obj[key])) {
+        result[key] = obj[key][0];
+      } else if (typeof obj[key] === 'object') {
         result[key] = getValueFromObject(obj[key]);
       } else {
         result[key] = generateBasicTypeValue(obj[key]);

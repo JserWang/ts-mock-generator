@@ -105,8 +105,16 @@ const formatInterface = (entry: InterfaceEntry | InterfaceEntry[]): Record<strin
       formatted[key] = `${value}[]`;
     } else if (ts.SyntaxKind.ArrayType === kind) {
       formatted[key] = [formatInterface(value)];
-    } else if (ts.SyntaxKind.TypeReference === kind && typeof value !== 'string') {
+    } else if (
+      ts.SyntaxKind.TypeReference === kind &&
+      ts.SyntaxKind.InterfaceDeclaration === value.kind
+    ) {
       formatted[key] = formatInterface(value);
+    } else if (
+      ts.SyntaxKind.TypeReference === kind &&
+      ts.SyntaxKind.EnumDeclaration === value.kind
+    ) {
+      formatted[key] = value.properties;
     } else {
       formatted[key] = value;
     }

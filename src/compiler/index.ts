@@ -18,28 +18,30 @@ export const visitFiles = (
   let result = new Array<ExpressionEntry | null>();
 
   const visit = (node: ts.Node) => {
-    if (ts.isClassDeclaration(node)) {
-      const className = getClassName(node);
-      // According to includes and excludes to get qualified class
-      if (!isMatched(className, includes) || isMatched(className, excludes)) {
-        return;
-      }
-
-      const methods = getClassMethods(node);
-      // Get all expression in method
-      let expressions = new Array<ts.CallExpression>();
-      methods.forEach((method) => {
-        expressions = expressions.concat(getMethodEntry(method).expressions);
-      });
-
-      // Get request expressions
-      expressions = expressions.filter((exp) => isRequestExpression(exp));
-
-      result = expressions.map((expression) => serializeExpression(expression, checker));
+    if (!ts.isClassDeclaration(node)) {
+      return;
     }
+    const className = getClassName(node);
+    // According to includes and excludes to get qualified class
+    if (!isMatched(className, includes) || isMatched(className, excludes)) {
+      return;
+    }
+
+    const methods = getClassMethods(node);
+    // Get all expression in method
+    let expressions = new Array<ts.CallExpression>();
+    methods.forEach((method) => {
+      expressions = expressions.concat(getMethodEntry(method).expressions);
+    });
+
+    // Get request expressions
+    expressions = expressions.filter((exp) => isRequestExpression(exp));
+
+    result = expressions.map((expression) => serializeExpression(expression, checker));
   };
 
   sourceFiles.forEach((sourceFile) => {
+    // ignore *.d.ts
     if (!sourceFile.isDeclarationFile) {
       ts.forEachChild(sourceFile, visit);
     }
