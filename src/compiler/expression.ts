@@ -47,6 +47,8 @@ const getUrlFromArguments = (node: ts.CallExpression, checker: ts.TypeChecker): 
   } else if (ts.isStringLiteral(urlExpression)) {
     // Assign value via string
     return getStringLiteralValue(urlExpression);
+  } else if (ts.isTemplateExpression(urlExpression)) {
+    return getTemplateExpressionValue(urlExpression, checker);
   }
   return '';
 };
@@ -225,4 +227,25 @@ const getExpressionName = (node: ts.CallExpression): string => {
     return getIdentifierText(expression.name).toLocaleLowerCase();
   }
   return '';
+};
+
+const getTemplateExpressionValue = (
+  node: ts.TemplateExpression,
+  checker: ts.TypeChecker
+): string => {
+  const spans = node.templateSpans.map((templateSpan) =>
+    getTemplateSpanValue(templateSpan, checker)
+  );
+  return `${spans.join('')}${node.head.text}`;
+};
+
+const getTemplateSpanValue = (node: ts.TemplateSpan, checker: ts.TypeChecker) => {
+  let expressValue = '';
+  if (ts.isPropertyAccessExpression(node.expression)) {
+    expressValue = processPropertyAccessExpression(node.expression, checker);
+  } else if (ts.isCallExpression(node.expression)) {
+    expressValue = node.expression.getText();
+  }
+
+  return `${expressValue}${node.literal.text}`;
 };
