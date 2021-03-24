@@ -41,16 +41,29 @@ export const serializeExpression = (
  */
 const getUrlFromArguments = (node: ts.CallExpression, checker: ts.TypeChecker): string => {
   const urlExpression = node.arguments[0];
+  let url = '';
   if (ts.isPropertyAccessExpression(urlExpression)) {
     // Assign value via property
-    return processPropertyAccessExpression(urlExpression, checker);
+    url = processPropertyAccessExpression(urlExpression, checker);
   } else if (ts.isStringLiteral(urlExpression)) {
     // Assign value via string
-    return getStringLiteralValue(urlExpression);
+    url = getStringLiteralValue(urlExpression);
   } else if (ts.isTemplateExpression(urlExpression)) {
-    return getTemplateExpressionValue(urlExpression, checker);
+    url = getTemplateExpressionValue(urlExpression, checker);
   }
-  return '';
+
+  return formatUrl(url);
+};
+
+/**
+ * get url path
+ * @param url
+ * @returns
+ */
+const formatUrl = (url: string): string => {
+  // When there are parameters in the url in the POST request
+  // only the content before the '?' is processed
+  return url.split('?')[0];
 };
 
 const processPropertyAccessExpression = (
