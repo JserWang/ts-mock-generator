@@ -1,4 +1,4 @@
-import { glob } from 'glob';
+import fastGlob from 'fast-glob';
 import { resolve } from 'path';
 
 /**
@@ -24,7 +24,7 @@ export const isMatched = (target: string, reg?: RegExp | RegExp[]): boolean => {
 };
 
 export const getFilesFromPathByRule = (rule: string, path: string) => {
-  return glob
+  return fastGlob
     .sync(rule, {
       cwd: path,
     })
