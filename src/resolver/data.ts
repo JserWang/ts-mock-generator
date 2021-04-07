@@ -95,9 +95,9 @@ export class MockDataResolver {
     if (!existsSync(this.mockFilePath)) {
       return;
     }
-    watch(this.mockFilePath, (event) => {
+    watch(this.mockFilePath, (event, fileName) => {
       if (event === 'update') {
-        logger.info('Update the response mock data');
+        logger.info(`${fileName} has changed, update the response mock data`);
         const mockData = (this.originMockData = this.getDataFromMockFile());
         callback(mockData);
       }
@@ -120,8 +120,9 @@ export class MockDataResolver {
           );
         },
       },
-      (event) => {
+      (event, fileName) => {
         if (event === 'update') {
+          logger.info(`${fileName} has changed`);
           const structure = this.getStructureFromFiles();
           const differences = this.getStructureDifferences(this.originStructure, structure);
           if (differences.length === 0) {
