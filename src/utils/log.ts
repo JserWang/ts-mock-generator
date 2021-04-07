@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 
 const colorful = (flag: LOG_FLAG) => {
-  switch(flag) {
+  switch (flag) {
     case LOG_FLAG.INFO:
       return chalk.greenBright;
     case LOG_FLAG.WARNING:
@@ -9,19 +9,19 @@ const colorful = (flag: LOG_FLAG) => {
     case LOG_FLAG.ERROR:
       return chalk.redBright;
   }
-}
+};
 
 enum LOG_FLAG {
   INFO = 'info',
   WARNING = 'warning',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 class Logger {
   private prefix: string;
 
   constructor(prefix: string) {
-    this.prefix = prefix
+    this.prefix = prefix;
   }
 
   info(msg: string) {
@@ -37,7 +37,7 @@ class Logger {
   }
 
   private log(flag: LOG_FLAG, msg: string) {
-    console.log(colorful(flag)(`[${this.prefix}:${flag}]`), msg)
+    console.log(colorful(flag)(`[${this.prefix}:${flag}]`), msg);
   }
 }
 
