@@ -37,7 +37,9 @@ export const visitFiles = (
     // Get request expressions
     expressions = expressions.filter((exp) => isRequestExpression(exp));
 
-    result = expressions.map((expression) => serializeExpression(expression, checker));
+    result = result.concat(
+      expressions.map((expression) => serializeExpression(expression, checker)) || []
+    );
   };
 
   sourceFiles.forEach((sourceFile) => {
