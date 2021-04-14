@@ -70,7 +70,6 @@ const serializeIndexable = (
   checker: ts.TypeChecker
 ): IProperty => {
   const typeNode = signature.type;
-
   return {
     key: INDEXABLE_TYPE,
     kind: typeNode.kind,
@@ -159,6 +158,13 @@ const getDeclaration = (node: ts.Node, checker: ts.TypeChecker) => {
   return declarations![0];
 };
 
+export interface RecordEntry {
+  kind: number;
+  type: string;
+  keyType: any;
+  valueType: any;
+}
+
 /**
  * TypeReference to interface、Enum or generic string
  * @param node
@@ -167,7 +173,7 @@ const getDeclaration = (node: ts.Node, checker: ts.TypeChecker) => {
 export const processTypeReferenceNode = (
   node: ts.TypeReferenceNode | ts.LeftHandSideExpression | ts.TypeNode,
   checker: ts.TypeChecker
-): InterfaceEntry | EnumEntry | string => {
+): InterfaceEntry | EnumEntry | RecordEntry | string => {
   const declaration = getDeclaration(node, checker);
   if (ts.isInterfaceDeclaration(declaration)) {
     return serializeInterface(declaration, checker);
@@ -176,6 +182,20 @@ export const processTypeReferenceNode = (
   } else if (ts.isTypeParameterDeclaration(declaration)) {
     // process like T = any
     return getIdentifierText(declaration.name);
+  } else if (ts.isMappedTypeNode(declaration)) {
+    let typeNode = node as ts.TypeReferenceNode;
+    const typeName = typeNode.typeName.getText();
+    const isArray = ts.isArrayTypeNode(typeNode.typeArguments![1]);
+    if (typeName === 'Record') {
+      return {
+        kind: ts.SyntaxKind.MappedType,
+        type: 'Record',
+        keyType: serializePropertyValue(typeNode.typeArguments![0], checker),
+        valueType: isArray
+          ? [serializePropertyValue(typeNode.typeArguments![1], checker)]
+          : serializePropertyValue(typeNode.typeArguments![1], checker),
+      };
+    }
   }
 
   return declaration.getText();

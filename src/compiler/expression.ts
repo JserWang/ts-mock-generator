@@ -130,6 +130,10 @@ const formatInterface = (entry: InterfaceEntry | InterfaceEntry[]): Record<strin
       ts.SyntaxKind.EnumDeclaration === value.kind
     ) {
       formatted[key] = value.properties;
+    } else if (ts.SyntaxKind.TypeReference === kind && ts.SyntaxKind.MappedType === value.kind) {
+      if (value.type === 'Record') {
+        formatted[key] = { [value.keyType]: formatInterface(value.valueType) };
+      }
     } else {
       formatted[key] = value;
     }
