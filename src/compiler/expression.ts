@@ -191,6 +191,9 @@ const getTypeArgumentInterface = (
   node: ts.CallExpression,
   checker: ts.TypeChecker
 ): ResponseDataType => {
+  if (!node.typeArguments || node.typeArguments?.length === 0) {
+    return {};
+  }
   const typeArgument = node.typeArguments![0];
   if (ts.isTypeReferenceNode(typeArgument)) {
     return processTypeReferenceNode(typeArgument, checker) as InterfaceEntry;
