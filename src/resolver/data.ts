@@ -48,7 +48,7 @@ export class MockDataResolver {
   getOrGenerateData() {
     if (this.originMockData.length === 0) {
       const structure = this.getStructureFromFiles();
-      const mockData = generateMockData(structure, new Map(), []);
+      const mockData = generateMockData(structure, new Map(), new Map());
       if (this.opts.mockDir) {
         this.createStructureFile(structure);
         this.createMockFile(mockData);
@@ -96,11 +96,9 @@ export class MockDataResolver {
       return;
     }
     watch(this.mockFilePath, (event, fileName) => {
-      if (event === 'update') {
-        logger.info(`${fileName} has changed, update the response mock data`);
-        const mockData = (this.originMockData = this.getDataFromMockFile());
-        callback(mockData);
-      }
+      logger.info(`${fileName} has ${event}ed, update the response mock data`);
+      const mockData = (this.originMockData = this.getDataFromMockFile());
+      callback(mockData);
     });
   }
 
@@ -121,35 +119,33 @@ export class MockDataResolver {
         },
       },
       (event, fileName) => {
-        if (event === 'update') {
-          logger.info(`${fileName} has changed`);
-          const structure = this.getStructureFromFiles();
-          const differences = this.getStructureDifferences(this.originStructure, structure);
-          if (differences.length === 0) {
-            return;
-          }
-          logger.info(
-            `Different structures are monitored: '${chalk.red(
-              differences.join(',')
-            )}', regenerate mock file`
-          );
+        logger.info(`${fileName} has ${event}ed`);
+        const structure = this.getStructureFromFiles();
+        const differences = this.diffStructure(this.originStructure, structure);
+        if (differences.size === 0) {
+          return;
+        }
+        logger.info(
+          `Different structures are monitored: '${chalk.red(
+            Array.from(differences.keys()).join(',')
+          )}', regenerate mock file`
+        );
 
-          const mockData = generateMockData(
-            structure,
-            mockData2Map(this.originMockData),
-            differences
-          );
+        const mockData = generateMockData(
+          structure,
+          mockData2Map(this.originMockData),
+          differences
+        );
 
-          this.originMockData = mockData;
-          this.originStructure = structure;
+        this.originMockData = mockData;
+        this.originStructure = structure;
 
-          if (this.opts.mockDir) {
-            // will trigger mock file watcher
-            this.createStructureFile(structure);
-            this.createMockFile(mockData);
-          } else {
-            callback(this.originMockData);
-          }
+        if (this.opts.mockDir) {
+          // will trigger mock file watcher
+          this.createStructureFile(structure);
+          this.createMockFile(mockData);
+        } else {
+          callback(this.originMockData);
         }
       }
     );
@@ -160,27 +156,43 @@ export class MockDataResolver {
    * @param originStructure
    * @param structure
    */
-  private getStructureDifferences(
+  private diffStructure(
     originStructure: ExpressionEntry[],
     structure: ExpressionEntry[]
-  ) {
+  ): StructureDifference {
     const originMap = expressionArray2Map(originStructure);
     const currentMap = expressionArray2Map(structure);
 
-    const differences = new Array<string>();
+    const differences = new Map<string, DifferentType>();
+
     currentMap.forEach((value, key) => {
       if (originMap.has(key)) {
         if (!isEqual(originMap.get(key), currentMap.get(key))) {
-          differences.push(key);
+          differences.set(key, DifferentType.UPDATE);
         }
       } else {
         // When it does not exist in the original structure, it is proved to be newly added and directly added
-        differences.push(key);
+        differences.set(key, DifferentType.CREATE);
       }
     });
+
+    originMap.forEach((value, key) => {
+      if (!currentMap.has(key)) {
+        differences.set(key, DifferentType.DELETE);
+      }
+    });
+
     return differences;
   }
 }
+
+export enum DifferentType {
+  CREATE,
+  UPDATE,
+  DELETE,
+}
+
+export interface StructureDifference extends Map<string, DifferentType> {}
 
 const expressionArray2Map = (expressions: ExpressionEntry[]) => {
   let result = new Map<string, Record<string, any>>();

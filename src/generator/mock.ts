@@ -1,10 +1,12 @@
 import faker from 'faker';
 import { ExpressionEntry } from '../compiler/expression';
+import { StructureDifference } from '../resolver/data';
 import { MockData } from '../types';
 import { toString } from '../utils';
 
 const getValueFromObject = (obj: Record<string, any>): Record<string, any> => {
   let result = {} as Record<string, any>;
+  console.log(obj);
   if (!Array.isArray(obj)) {
     Object.keys(obj).forEach((key) => {
       if (Array.isArray(obj[key])) {
@@ -36,22 +38,19 @@ const generateBasicTypeValue = (valueType: string): string | number | string[] |
   }
 };
 
-const isDifferent = (key: string, array: string[]) => array.indexOf(key) !== -1;
-
 export const generateMockData = (
   entry: ExpressionEntry[],
   originDataMap: Map<string, MockData>,
-  differences: string[]
+  difference: StructureDifference
 ): MockData[] => {
   return entry.map(({ url, responseBody }) => {
-    // When there is no change, take the original value directly
-    if (differences.length > 0 && !isDifferent(url, differences)) {
+    if (!difference.has(url) && originDataMap.has(url)) {
       return originDataMap.get(url) as MockData;
-    } else {
-      return {
-        url,
-        response: getValueFromObject(responseBody),
-      };
     }
+
+    return {
+      url,
+      response: getValueFromObject(responseBody),
+    };
   });
 };
