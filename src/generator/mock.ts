@@ -6,7 +6,6 @@ import { toString } from '../utils';
 
 const getValueFromObject = (obj: Record<string, any>): Record<string, any> => {
   let result = {} as Record<string, any>;
-  console.log(obj);
   if (!Array.isArray(obj)) {
     Object.keys(obj).forEach((key) => {
       if (Array.isArray(obj[key])) {
