@@ -33,7 +33,7 @@ const generateBasicTypeValue = (valueType: string): string | number | string[] |
     case 'number[]':
       return [faker.random.number()];
     default:
-      return toString(valueType);
+      return typeof valueType === 'string' ? toString(valueType) : valueType;
   }
 };
 
