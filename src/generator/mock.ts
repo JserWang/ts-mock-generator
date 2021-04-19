@@ -9,7 +9,7 @@ const getValueFromObject = (obj: Record<string, any>): Record<string, any> => {
   if (!Array.isArray(obj)) {
     Object.keys(obj).forEach((key) => {
       if (Array.isArray(obj[key])) {
-        result[key] = obj[key][0];
+        result[key] = [getValueFromObject(obj[key][0])];
       } else if (typeof obj[key] === 'object') {
         result[key] = getValueFromObject(obj[key]);
       } else {
