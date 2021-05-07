@@ -160,8 +160,8 @@ const getCustomResponseInterface = (
     return null;
   }
   // Get the return fetch() part of the method
-  const expression = getMethodEntry(valueDeclaration).expressions[0];
-  if (!ts.isCallExpression(expression)) {
+  const expression = getMethodEntry(valueDeclaration).expressions?.[0];
+  if (!expression || !ts.isCallExpression(expression)) {
     return null;
   }
   // Get the signature of the fetch method
